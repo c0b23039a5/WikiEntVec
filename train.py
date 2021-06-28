@@ -23,18 +23,18 @@ def main(args):
 
     logger.info('training the model')
     model = Word2Vec(sentences=LineSentence(args.corpus_file),
-                     size=args.embed_size,
+                     vector_size=args.embed_size,
                      window=args.window_size,
                      negative=args.sample_size,
                      min_count=args.min_count,
                      workers=args.workers,
                      sg=1,
                      hs=0,
-                     iter=args.epoch)
+                     epochs=args.epoch)
 
     word_vocab_size = 0
     entity_vocab_size = 0
-    for token in model.wv.vocab:
+    for token in model.wv.index_to_key:
         if regex_entity.match(token):
             entity_vocab_size += 1
         else:
@@ -56,7 +56,7 @@ def main(args):
         print(total_vocab_size, args.embed_size, file=fo_all)
 
         # write tokens and vectors
-        for (token, _) in sorted(model.wv.vocab.items(), key=lambda t: -t[1].count):
+        for token in sorted(model.wv.index_to_key, key=lambda t: -model.wv.get_vecattr(t, 'count')):
             vector = model.wv[token]
 
             if regex_entity.match(token):
