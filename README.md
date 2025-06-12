@@ -65,6 +65,7 @@ You can manually process Wikipedia dump file and train a skip-gram model on the 
 - gensim
 - logzero
 - MeCab and its Python binding (mecab-python3) (optional: required for tokenizing Japanese texts)
+- regex
 
 
 ### Steps

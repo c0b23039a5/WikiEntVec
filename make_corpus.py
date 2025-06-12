@@ -3,6 +3,7 @@ import json
 import gzip
 import argparse
 from collections import OrderedDict
+import regex as re2
 
 from logzero import logger
 
@@ -86,21 +87,16 @@ def main(args):
             hyperlinks_sorted = OrderedDict(sorted(
                 hyperlinks.items(), key=lambda t: len(t[0]), reverse=True))
 
-            replacement_flags = [0] * len(text)
-            for (anchor, entity) in hyperlinks_sorted.items():
-                cursor = 0
-                while cursor < len(text) and anchor in text[cursor:]:
-                    start = text.index(anchor, cursor)
-                    end = start + len(anchor)
-                    if not any(replacement_flags[start:end]):
-                        entity_token = f'##{entity}##'.replace(' ', '_')
-                        text = text[:start] + entity_token + text[end:]
-                        replacement_flags = replacement_flags[:start] \
-                            + [1] * len(entity_token) + replacement_flags[end:]
-                        assert len(text) == len(replacement_flags)
-                        cursor = start + len(entity_token)
-                    else:
-                        cursor = end
+            if hyperlinks_sorted:
+                replace_map = {
+                    anchor: f'##{entity}##'.replace(' ', '_')
+                    for anchor, entity in hyperlinks_sorted.items()
+                }
+                pattern = re2.compile(
+                    '|'.join(re2.escape(a) for a in replace_map),
+                    re2.BESTMATCH,
+                )
+                text = pattern.sub(lambda m: replace_map[m.group(0)], text)
 
             text = ' '.join(tokenizer.tokenize(text))
 
